@@ -1,0 +1,21 @@
+{
+    "name": "node-json2csv",
+    "version": "0.0.1",
+    "description": "Module for converting Json to CSV string.",
+    "main": "./dist/index.js",
+    "scripts": {
+        "build": "babel src --presets babel-preset-es2015 --out-dir dist",
+        "prepublish": "npm run build"
+    },
+    "repository": {
+        "type": "git",
+        "url": "ssh://git@github.com:ewein/node-json2csv.git"
+    },
+    "author": "Eric Wein (ericpwein@gmail.com)",
+    "license": "MIT",
+    "dependencies": {
+        "async": "^1.5.2",
+        "babel-cli": "^6.0.0",
+        "babel-preset-es2015": "^6.0.0"
+    }
+}
