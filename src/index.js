@@ -3,17 +3,10 @@ import async from 'async';
 /**
  * Convert an object to array
  * @param obj
- * @param callback
  * @private
  */
-function _convertObjectToArray(obj, callback) {
-    const arr = [];
-    async.each(Object.keys(obj), (key, done) => {
-        arr.push(obj[key]);
-        done(null);
-    }, (err) => {
-        callback(err, arr);
-    });
+function _convertObjectToArray(obj) {
+    return Object.keys(obj).map(key => obj[key])
 }
 
 /**
@@ -26,12 +19,12 @@ function _convertArrayToCSV(arr) {
 
 /**
  * Convert a json object to csv block
+ * @param csv
  * @param data
  * @param callback
  * @private
  */
-function _convertToCSVBlock(data, callback) {
-    let csv = '';
+function _convertToCSVBlock(csv, data, callback) {
     if (data.showTitle !== undefined && data.showTitle) {
         csv += `${data.title}\r\n`;
     }
@@ -41,9 +34,10 @@ function _convertToCSVBlock(data, callback) {
     }
 
     if (!(data.body instanceof Array)) {
-        _convertObjectToArray(data.body, (err, arr) => {
+        const arr = _convertObjectToArray(data.body);
+        process.nextTick(() => {
             csv += `\r\n${_convertArrayToCSV(arr)}\r\n\r\n`;
-            callback(err, csv);
+            callback(null);
         });
 
         return;
@@ -53,15 +47,17 @@ function _convertToCSVBlock(data, callback) {
         if (row instanceof Array) {
             csv += `\r\n${_convertArrayToCSV(row)}`;
             next(null);
-        } else {
-            _convertObjectToArray(row, (err, arr) => {
-                csv += `\r\n${_convertArrayToCSV(arr)}`;
-                next(err);
-            });
+            return;
         }
+
+        const arr = _convertObjectToArray(data.body);
+        process.nextTick(() => {
+            csv += `\r\n${_convertArrayToCSV(arr)}`;
+            next(null);
+        });
     }, (err) => {
         csv += '\r\n\r\n';
-        callback(err, csv);
+        callback(err);
     });
 }
 
@@ -72,13 +68,10 @@ function _convertToCSVBlock(data, callback) {
  * @private
  */
 export default (data, callback) => {
-    let response = '';
+    let csv = '';
     async.each(data, (json, next) => {
-        _convertToCSVBlock(json, (err, csv) => {
-            response += csv;
-            next(err);
-        });
+        _convertToCSVBlock(csv, json, next);
     }, (err) => {
-        callback(err, response);
+        callback(err, csv);
     });
 };
